@@ -44,7 +44,7 @@ def test_ai_endpoints():
     headers = get_auth_headers()
     if not headers:
         print("❌ Could not get authentication headers")
-        return False
+        assert False, "Could not get authentication headers"
     
     # Test explanation endpoint
     print("\n🔄 Testing explanation endpoint...")
@@ -73,8 +73,6 @@ def test_ai_endpoints():
         print(f"Response: {response.json()}")
     else:
         print(f"Error: {response.text}")
-    
-    return True
 
 def test_health_check():
     print("🔄 Testing health check...")
@@ -82,10 +80,10 @@ def test_health_check():
     print(f"Health check: {response.status_code}")
     if response.status_code == 200:
         print(f"Response: {response.json()}")
-        return True
+        assert True
     else:
         print(f"Error: {response.text}")
-        return False
+        assert False, f"Health check failed with status {response.status_code}"
 
 if __name__ == "__main__":
     test_ai_endpoints()

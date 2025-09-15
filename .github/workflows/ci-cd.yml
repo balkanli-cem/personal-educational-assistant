@@ -32,6 +32,15 @@ jobs:
       with:
         python-version: '3.12'
     
+    - name: Set up PostgreSQL
+      uses: harmon758/postgresql-action@v1
+      with:
+        postgresql version: '15'
+        postgresql db: 'test_db'
+        postgresql user: 'postgres'
+        postgresql password: 'postgres'
+        postgresql port: '5432'
+    
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
@@ -63,10 +72,9 @@ jobs:
     - name: Run backend tests
       run: |
         cd backend
-        # Set a dummy API key for testing if not provided
-        if [ -z "$OPENAI_API_KEY" ]; then
-          export OPENAI_API_KEY="dummy-key-for-testing"
-        fi
+        # Set environment variables for PostgreSQL
+        export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
+        export OPENAI_API_KEY="dummy-key-for-testing"
         # Run tests with more verbose output
         python -m pytest test_api.py test_ai_endpoints.py test_db.py test_models.py -v -s --tb=short
     
