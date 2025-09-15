@@ -9,7 +9,7 @@ class UserProfile(Base):
     user_id = Column(Integer, nullable=False, index=True)
     learning_style = Column(String(50), default="visual")
     difficulty_preference = Column(String(20), default="intermediate")
-    subjects_of_interest = Column(JSON)  # Changed from ARRAY(String) to JSON
+    subjects_of_interest = Column(JSON)
     learning_goals = Column(Text)
     time_commitment = Column(String(20), default="medium")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
