@@ -6,23 +6,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database URL - update these values for your local setup
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:your_password@localhost:5432/educational_assistant"
-)
+# Get database URL from environment
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
-# Create SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
+# Create engine
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 
-# Create SessionLocal class
+# Create session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create Base class for models
+# Create base class
 Base = declarative_base()
 
-# Dependency to get database session
 def get_db():
+    """Get database session"""
     db = SessionLocal()
     try:
         yield db

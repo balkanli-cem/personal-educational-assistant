@@ -67,10 +67,8 @@ jobs:
         if [ -z "$OPENAI_API_KEY" ]; then
           export OPENAI_API_KEY="dummy-key-for-testing"
         fi
-        python -m pytest test_api.py test_ai_endpoints.py test_db.py test_models.py -v
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        # Run tests with more verbose output
+        python -m pytest test_api.py test_ai_endpoints.py test_db.py test_models.py -v -s --tb=short
     
     - name: Run backend linting
       run: |
