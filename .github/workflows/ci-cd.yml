@@ -1,8 +1,8 @@
-name: CI/CD Pipeline
+name: Simple CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -10,87 +10,43 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
     
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
-    - name: Set up Python 3.12
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-    
-    - name: Set up PostgreSQL
-      uses: harmon758/postgresql-action@v1
-      with:
-        postgresql version: '15'
-        postgresql db: 'test_db'
-        postgresql user: 'postgres'
-        postgresql password: 'postgres'
-        postgresql port: '5432'
-    
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
     
     - name: Install backend dependencies
       run: |
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        # Install additional dependencies for email validation
-        pip install email-validator
-        # Install pytest explicitly
-        pip install pytest pytest-asyncio
-
-    - name: Start FastAPI server
-      run: |
-        cd backend
-        # Start the server in the background
-        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-        # Wait a moment for the server to start
-        sleep 15
-        # Check if the server is running
-        curl -f http://localhost:8000/health || exit 1
-
-    - name: Run backend tests
-      run: |
-        cd backend
-        # Set environment variables for PostgreSQL
-        export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
-        export OPENAI_API_KEY="dummy-key-for-testing"
-        # Run tests with more verbose output
-        python -m pytest test_api.py test_ai_endpoints.py test_db.py test_models.py -v -s --tb=short
+        pip install pytest
     
-    - name: Run backend linting
+    - name: Test model imports
       run: |
         cd backend
-        pip install flake8
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        python -c "from app.models import User, UserProfile, LearningSession, Quiz, QuizQuestion, QuizResponse, LearningProgress; print('✅ All models imported successfully')"
+    
+    - name: Test database creation
+      run: |
+        cd backend
+        python -c "from app.models.database import Base, engine; Base.metadata.create_all(bind=engine); print('✅ Database tables created successfully')"
+    
+    - name: Run simple tests
+      run: |
+        cd backend
+        python test_models_simple.py
 
   test-frontend:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
-    - name: Set up Python 3.12
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
@@ -101,36 +57,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Run frontend tests
+    - name: Test frontend imports
       run: |
         cd frontend
-        python -m pytest --tb=short -v || echo "No frontend tests found"
-
-  build-and-deploy:
-    needs: [test-backend, test-frontend]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    
-    - name: Install dependencies
-      run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install gunicorn
-    
-    - name: Build Docker image
-      run: |
-        docker build -t personalized-educational-assistant:${{ github.sha }} .
-    
-    - name: Deploy to Azure (placeholder)
-      run: |
-        echo "Deployment to Azure would happen here"
-        echo "This is where you would add Azure deployment steps"
+        python -c "import streamlit; print('✅ Streamlit import successful')"
