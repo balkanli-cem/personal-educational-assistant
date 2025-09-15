@@ -133,6 +133,31 @@ jobs:
             AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
             AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
             SECRET_KEY="${{ secrets.SECRET_KEY }}"
+
+    - name: Build and push frontend to ACR
+      run: |
+        az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-frontend:${{ github.sha }} -f Dockerfile.frontend .
+    
+    - name: Deploy frontend to Azure Container Instances
+      run: |
+        # Get ACR credentials
+        ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
+        ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
+        
+        az container create \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --name personalized-educational-frontend \
+          --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-frontend:${{ github.sha }} \
+          --registry-username $ACR_USERNAME \
+          --registry-password $ACR_PASSWORD \
+          --os-type Linux \
+          --cpu 1 \
+          --memory 2 \
+          --ports 8501 \
+          --ip-address Public \
+          --dns-name-label personalized-education-frontend-${{ github.sha }} \
+          --environment-variables \
+            BACKEND_URL="http://20.8.161.48:8000"
     
     - name: Get deployment URL
       run: |

@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import requests
 import json
@@ -6,6 +7,9 @@ from typing import Dict, List, Any
 
 # API Configuration
 API_BASE_URL = "http://localhost:8000"
+
+# Set the backend URL
+BACKEND_URL = os.getenv("BACKEND_URL", "http://20.8.161.48:8000")
 
 def main():
     st.set_page_config(
