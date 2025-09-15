@@ -111,10 +111,16 @@ jobs:
     
     - name: Deploy to Azure Container Instances
       run: |
+        # Get ACR credentials
+        ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
+        ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
+        
         az container create \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
+          --registry-username $ACR_USERNAME \
+          --registry-password $ACR_PASSWORD \
           --cpu 1 \
           --memory 2 \
           --ports 8000 \
