@@ -121,6 +121,7 @@ jobs:
           --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
           --registry-username $ACR_USERNAME \
           --registry-password $ACR_PASSWORD \
+          --os-type Linux \
           --cpu 1 \
           --memory 2 \
           --ports 8000 \
