@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  AZURE_WEBAPP_NAME: personalized-educational-assistant
+  AZURE_RESOURCE_GROUP: reimainge-dev-env-openAI
+  AZURE_LOCATION: West Europe
+
 jobs:
   test-backend:
     runs-on: ubuntu-latest
@@ -91,7 +96,36 @@ jobs:
         docker stop test-app
         echo "✅ Docker container test passed"
     
-    - name: Deploy to Azure (placeholder)
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Login to Azure Container Registry
       run: |
-        echo "🚀 Ready to deploy to Azure!"
-        echo "Add your Azure deployment commands here"
+        az acr login --name ${{ secrets.ACR_NAME }}
+    
+    - name: Build and push to ACR
+      run: |
+        az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-assistant:${{ github.sha }} .
+    
+    - name: Deploy to Azure Container Instances
+      run: |
+        az container create \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
+          --cpu 1 \
+          --memory 2 \
+          --ports 8000 \
+          --environment-variables \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+            AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}"
+    
+    - name: Get deployment URL
+      run: |
+        az container show --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --query "ipAddress.ip" --output tsv
+        echo "🚀 Deployment completed! Check the IP address above."
