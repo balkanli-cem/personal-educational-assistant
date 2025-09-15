@@ -1,4 +1,4 @@
-name: Simple CI/CD Pipeline
+name: Enhanced CI/CD Pipeline
 
 on:
   push:
@@ -35,10 +35,15 @@ jobs:
         cd backend
         python -c "from app.models.database import Base, engine; Base.metadata.create_all(bind=engine); print('✅ Database tables created successfully')"
     
-    - name: Run simple tests
+    - name: Run model tests
       run: |
         cd backend
         python test_models_simple.py
+    
+    - name: Run API tests
+      run: |
+        cd backend
+        python test_api_simple.py
 
   test-frontend:
     runs-on: ubuntu-latest
