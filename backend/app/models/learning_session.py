@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.models.database import Base
+from .database import Base
 
 class LearningSession(Base):
     __tablename__ = "learning_sessions"

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.models.database import Base
+from .database import Base
 
 class LearningProgress(Base):
     __tablename__ = "learning_progress"
