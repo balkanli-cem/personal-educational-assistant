@@ -45,10 +45,16 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        # Install pytest explicitly
+        pip install pytest pytest-asyncio
     
     - name: Run backend tests
       run: |
         cd backend
+        # Set a dummy API key for testing if not provided
+        if [ -z "$OPENAI_API_KEY" ]; then
+          export OPENAI_API_KEY="dummy-key-for-testing"
+        fi
         python -m pytest test_api.py test_ai_endpoints.py test_db.py test_models.py -v
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
