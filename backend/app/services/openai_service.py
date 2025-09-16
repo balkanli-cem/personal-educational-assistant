@@ -153,6 +153,7 @@ Format your response as JSON with this structure:
             quiz_data = json.loads(content)
             return quiz_data.get("questions", [])
         except Exception as e:
+            print(f"Quiz generation error: {str(e)}")  # Add logging
             return [{"error": f"Error generating quiz: {str(e)}"}]
     
     async def evaluate_answer(

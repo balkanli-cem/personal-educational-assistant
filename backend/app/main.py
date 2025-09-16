@@ -7,11 +7,14 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-from .models.database import get_db
+from .models.database import get_db, engine, Base
 from .routers import auth, educational, user_profile, ai_educational
 
 # Load environment variables
 load_dotenv()
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Personalized Educational Assistant API",

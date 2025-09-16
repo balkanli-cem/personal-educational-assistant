@@ -127,6 +127,11 @@ jobs:
       run: |
         az acr login --name ${{ secrets.ACR_NAME }}
     
+    - name: Delete existing containers
+      run: |
+        az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --yes || true
+        az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name personalized-educational-frontend --yes || true
+    
     - name: Build and push to ACR
       run: |
         az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-assistant:${{ github.sha }} .
@@ -182,7 +187,7 @@ jobs:
           --ip-address Public \
           --dns-name-label $DNS_NAME \
           --environment-variables \
-            BACKEND_URL="http://20.8.161.48:8000"
+            BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
     
     - name: Get deployment URL
       run: |

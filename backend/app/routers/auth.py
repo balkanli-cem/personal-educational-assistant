@@ -97,7 +97,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     profile = UserProfile(
         user_id=db_user.id,
         learning_style="visual",
-        difficulty_level="beginner",
+        difficulty_preference="beginner",
         subjects_of_interest=[],
         preferred_explanation_length="medium"
     )

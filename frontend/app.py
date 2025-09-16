@@ -6,10 +6,10 @@ import time
 from typing import Dict, List, Any
 
 # API Configuration
-API_BASE_URL = os.getenv("BACKEND_URL", "http://20.8.161.48:8000")
+API_BASE_URL = os.getenv("BACKEND_URL", "http://20.238.165.133:8000")
 
 # Set the backend URL
-BACKEND_URL = os.getenv("BACKEND_URL", "http://20.8.161.48:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://20.238.165.133:8000")
 
 def main():
     st.set_page_config(
@@ -22,301 +22,60 @@ def main():
     # Enhanced CSS for better readability and modern design
     st.markdown("""
     <style>
-    /* Main background with gradient */
+    /* Global app styling */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Force all text to be black and readable - more specific targeting */
-    .stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+    /* Sidebar background */
+    .stSidebar {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    /* Main content text */
+    .stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, 
+    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6,
+    .main .stMarkdown, .main .stMarkdown p, .main .stMarkdown h1, .main .stMarkdown h2, 
+    .main .stMarkdown h3, .main .stMarkdown h4, .main .stMarkdown h5, .main .stMarkdown h6 {
         color: #000000 !important;
         line-height: 1.6 !important;
     }
 
-    /* Force all text in Streamlit components to be black */
-    .stText, .stText p, .stText h1, .stText h2, .stText h3, .stText h4, .stText h5, .stText h6 {
+    /* Sidebar text (default = white, inputs stay black) */
+    .stSidebar * {
+        color: white !important;
+    }
+    .stSidebar input[type="text"],
+    .stSidebar input[type="email"], 
+    .stSidebar input[type="password"] {
         color: #000000 !important;
     }
 
-    /* Force metric text to be black */
+    /* Metrics */
     .stMetric, .stMetric > div, .stMetric > div > div {
         color: #000000 !important;
     }
 
-    /* Force sidebar text to be black */
-    .stSidebar, .stSidebar p, .stSidebar h1, .stSidebar h2, .stSidebar h3, .stSidebar h4, .stSidebar h5, .stSidebar h6 {
-        color: #000000 !important;
-    }
-
-    /* Force tab text to be black */
+    /* Tabs */
     .stTabs [data-baseweb="tab"] {
-        color: #000000 !important;
-    }
-
-    .stTabs [aria-selected="true"] {
-        color: #ffffff !important; /* Keep selected tab text white for contrast */
-    }
-
-    /* Force all labels to be black */
-    .stRadio > div > label, .stCheckbox > div > label, .stSelectbox > div > label {
-        color: #000000 !important;
-    }
-
-    /* Force all input text to be black */
-    .stTextInput input, .stTextArea textarea, .stSelectbox select {
-        color: #000000 !important;
-    }
-
-    /* Force all button text to be white (for contrast) */
-    .stButton > button {
-        color: #ffffff !important;
-    }
-
-    /* Header styling with modern gradient */
-    .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2.5rem;
-        border-radius: 20px;
-        color: white;
-        text-align: center;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .main-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        color: white !important;
-    }
-
-    .main-header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-        margin: 0;
-        color: white !important;
-    }
-
-    /* Authentication Page Specific Styles */
-    .stAuthentication {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-    }
-
-    /* Form Container */
-    .stAuthentication .stForm {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* Form Title */
-    .stAuthentication h1, .stAuthentication h2, .stAuthentication h3 {
-        color: #2d3748 !important;
-        font-weight: 600;
-        margin-bottom: 30px;
-        text-align: center;
-    }
-
-    /* Input Labels */
-    .stAuthentication label {
-        color: #4a5568 !important;
-        font-weight: 500;
-        font-size: 14px;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    /* Input Fields */
-    .stAuthentication input[type="text"], 
-    .stAuthentication input[type="email"], 
-    .stAuthentication input[type="password"] {
-        background: #ffffff !important;
-        border: 2px solid #e2e8f0 !important;
+        background: rgba(255, 255, 255, 0.15) !important;
         border-radius: 12px !important;
-        padding: 12px 16px !important;
-        font-size: 16px !important;
-        color: #2d3748 !important;
-        transition: all 0.3s ease !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    .stAuthentication input[type="text"]:focus, 
-    .stAuthentication input[type="email"]:focus, 
-    .stAuthentication input[type="password"]:focus {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-        outline: none !important;
-    }
-
-    /* Password Visibility Toggle */
-    .stAuthentication button[title="Show password"] {
-        background: #f7fafc !important;
-        border: 2px solid #e2e8f0 !important;
-        border-radius: 8px !important;
-        color: #4a5568 !important;
-        padding: 8px !important;
-        margin-left: 8px !important;
-    }
-
-    .stAuthentication button[title="Show password"]:hover {
-        background: #edf2f7 !important;
-        border-color: #cbd5e0 !important;
-    }
-
-    /* Register Button */
-    .stAuthentication button[type="submit"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 14px 24px !important;
-        font-size: 16px !important;
+        padding: 0.75rem 1.5rem !important;
         font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-        width: 100% !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        backdrop-filter: blur(10px) !important;
         transition: all 0.3s ease !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: #ffffff !important;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
     }
 
-    .stAuthentication button[type="submit"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
-    }
-
-    /* Error Messages */
-    .stAuthentication .stAlert {
-        background: #fed7d7 !important;
-        border: 1px solid #feb2b2 !important;
-        border-radius: 12px !important;
-        color: #c53030 !important;
-        padding: 12px 16px !important;
-        margin-top: 16px !important;
-        font-weight: 500 !important;
-    }
-
-    /* Success Messages */
-    .stAuthentication .stSuccess {
-        background: #c6f6d5 !important;
-        border: 1px solid #9ae6b4 !important;
-        border-radius: 12px !important;
-        color: #22543d !important;
-        padding: 12px 16px !important;
-        margin-top: 16px !important;
-        font-weight: 500 !important;
-    }
-
-    /* Tab Navigation */
-    .stAuthentication .stTabs [data-baseweb="tab"] {
-        background: #f7fafc !important;
-        color: #4a5568 !important;
-        border-radius: 8px !important;
-        margin-right: 8px !important;
-        padding: 8px 16px !important;
-        font-weight: 500 !important;
-    }
-
-    .stAuthentication .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-    }
-
-    /* Card styling with glassmorphism effect */
-    .quiz-card, .stats-card, .learning-card {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 2rem;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.2);
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        backdrop-filter: blur(10px);
-        color: #000000 !important;
-        transition: all 0.3s ease;
-    }
-
-    .quiz-card:hover, .stats-card:hover, .learning-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-    }
-
-    .quiz-card h4, .stats-card h3, .learning-card h3 {
-        color: #000000 !important;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-    }
-
-    .quiz-card p, .stats-card p, .learning-card p {
-        color: #000000 !important;
-    }
-
-    /* Answer feedback styling with animations */
-    .correct-answer {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        border-left: 5px solid #28a745;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-        color: #000000 !important;
-        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
-        animation: slideIn 0.5s ease-out;
-    }
-
-    .correct-answer h4, .correct-answer p {
-        color: #000000 !important;
-    }
-
-    .incorrect-answer {
-        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-        border-left: 5px solid #dc3545;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-        color: #000000 !important;
-        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
-        animation: slideIn 0.5s ease-out;
-    }
-
-    .incorrect-answer h4, .incorrect-answer p {
-        color: #000000 !important;
-    }
-
-    /* Progress bar with modern styling */
-    .progress-bar {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 20px;
-        overflow: hidden;
-        margin: 1.5rem 0;
-        height: 30px;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .progress-fill {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        height: 100%;
-        transition: width 0.5s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 0.9rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-
-    /* Enhanced input styling */
-    .stTextInput > div > div > input, .stTextArea > div > div > textarea {
+    /* Inputs */
+    .stTextInput input, .stTextArea textarea, .stSelectbox select {
         background: rgba(255, 255, 255, 0.95) !important;
         color: #000000 !important;
         border: 2px solid #e9ecef !important;
@@ -326,14 +85,14 @@ def main():
         transition: all 0.3s ease !important;
         backdrop-filter: blur(10px) !important;
     }
-
-    .stTextInput > div > div > input:focus, .stTextArea > div > div > textarea:focus {
+    .stTextInput input:focus, .stTextArea textarea:focus {
         border-color: #667eea !important;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
         transform: translateY(-2px) !important;
+        outline: none !important;
     }
 
-    /* Enhanced button styling */
+    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: #ffffff !important;
@@ -347,87 +106,82 @@ def main():
         text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
     }
-
     .stButton > button:hover {
         transform: translateY(-3px) !important;
         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
     }
 
-    /* Sidebar styling - keep simple for auth */
-    .css-1d391kg {
-        background: #f8f9fa !important;
-        border-right: 1px solid #dee2e6 !important;
+    /* Headers (hero style) */
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem;
+        border-radius: 20px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .main-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        color: white !important;
+    }
+    .main-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+        color: white !important;
     }
 
-    /* Metric styling with glassmorphism */
-    .metric-container {
-        background: rgba(255, 255, 255, 0.95) !important;
-        padding: 1.5rem !important;
-        border-radius: 15px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-        text-align: center !important;
-        margin: 0.5rem !important;
-        backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        transition: all 0.3s ease !important;
+    /* Card container for equal layout */
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: center;
+    }
+    .card-container > div {
+        flex: 1 1 calc(33.333% - 1.5rem);
+        min-width: 250px;
+        max-width: 400px;
     }
 
-    .metric-container:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    /* Cards */
+    .quiz-card, .stats-card, .learning-card {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 20px;
+        margin: 1rem 0;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        color: #000000 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 180px;
     }
-
-    .metric-container h3, .metric-container p, .metric-container div {
+    .quiz-card:hover, .stats-card:hover, .learning-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    .quiz-card h4, .stats-card h3, .learning-card h3 {
+        color: #000000 !important;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    .quiz-card p, .stats-card p, .learning-card p {
         color: #000000 !important;
     }
 
-    /* Radio button styling */
-    .stRadio > div {
-        background: rgba(255, 255, 255, 0.95) !important;
-        padding: 1.5rem !important;
-        border-radius: 15px !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-        backdrop-filter: blur(10px) !important;
-        margin: 0.5rem 0 !important;
-        transition: all 0.3s ease !important;
-    }
-
-    .stRadio > div:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
-    }
-
-    .stRadio > div > label {
-        color: #000000 !important;
-        font-weight: 500 !important;
-        font-size: 1rem !important;
-    }
-
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(255, 255, 255, 0.95) !important;
-        border-radius: 12px !important;
-        padding: 0.75rem 1.5rem !important;
-        font-weight: 600 !important;
-        color: #000000 !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        backdrop-filter: blur(10px) !important;
-        transition: all 0.3s ease !important;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
-    }
-
-    /* Success/Error message styling */
-    .stSuccess {
+    /* Feedback messages */
+    .stSuccess, .correct-answer {
         background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
         border: 1px solid #28a745 !important;
         border-radius: 12px !important;
@@ -435,8 +189,7 @@ def main():
         padding: 1rem !important;
         margin: 1rem 0 !important;
     }
-
-    .stError {
+    .stError, .incorrect-answer {
         background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%) !important;
         border: 1px solid #dc3545 !important;
         border-radius: 12px !important;
@@ -444,7 +197,6 @@ def main():
         padding: 1rem !important;
         margin: 1rem 0 !important;
     }
-
     .stWarning {
         background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
         border: 1px solid #ffc107 !important;
@@ -453,7 +205,6 @@ def main():
         padding: 1rem !important;
         margin: 1rem 0 !important;
     }
-
     .stInfo {
         background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%) !important;
         border: 1px solid #17a2b8 !important;
@@ -463,97 +214,26 @@ def main():
         margin: 1rem 0 !important;
     }
 
-    /* Force all expander text to be black */
-    .stExpander, .stExpander p, .stExpander h1, .stExpander h2, .stExpander h3, .stExpander h4, .stExpander h5, .stExpander h6 {
-        color: #000000 !important;
-    }
-
-    /* Force all selectbox text to be black */
-    .stSelectbox select, .stSelectbox option {
-        color: #000000 !important;
-    }
-
-    /* Force all slider text to be black */
-    .stSlider, .stSlider label {
-        color: #000000 !important;
-    }
-
-    /* Specific targeting for Learn tab content */
-    .stTabs [data-baseweb="tab-panel"] {
-        color: #000000 !important;
-    }
-
-    .stTabs [data-baseweb="tab-panel"] p, .stTabs [data-baseweb="tab-panel"] h1, .stTabs [data-baseweb="tab-panel"] h2, .stTabs [data-baseweb="tab-panel"] h3, .stTabs [data-baseweb="tab-panel"] h4, .stTabs [data-baseweb="tab-panel"] h5, .stTabs [data-baseweb="tab-panel"] h6 {
-        color: #000000 !important;
-    }
-
-    /* Force all text in main content area to be black */
-    .main .stMarkdown, .main .stMarkdown p, .main .stMarkdown h1, .main .stMarkdown h2, .main .stMarkdown h3, .main .stMarkdown h4, .main .stMarkdown h5, .main .stMarkdown h6 {
-        color: #000000 !important;
-    }
-
     /* Animations */
     @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
-
     @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
-    /* Loading spinner enhancement */
+    /* Spinner */
     .stSpinner > div {
         border-top-color: #667eea !important;
     }
 
-    /* Mobile responsiveness */
+    /* Responsive */
     @media (max-width: 768px) {
-        .main-header {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .main-header h1 {
-            font-size: 2rem;
-        }
-        
-        .quiz-card, .stats-card, .learning-card {
-            padding: 1.5rem;
-            margin: 0.5rem 0;
-        }
-    }
-    /* Force authorization text to be white */
-    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
-        color: white !important;
-    }
-
-    /* Specific styling for authorization section */
-    .stMarkdown p, .stMarkdown label, .stMarkdown div {
-        color: white !important;
-    }
-
-    /* Keep other text black as requested */
-    .stMarkdown:not(.authorization-section) p {
-        color: black !important;
-    }
-
-    /* Authorization section specific styling */
-    .authorization-section .stMarkdown p,
-    .authorization-section .stMarkdown label,
-    .authorization-section .stMarkdown div {
-        color: white !important;
+        .main-header { padding: 1.5rem; margin-bottom: 1rem; }
+        .main-header h1 { font-size: 2rem; }
+        .quiz-card, .stats-card, .learning-card { padding: 1.5rem; margin: 0.5rem 0; }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -595,6 +275,7 @@ def main():
     
     with tab5:
         show_profile_tab()
+
 
 def initialize_session_state():
     """Initialize session state variables"""
@@ -1032,12 +713,12 @@ def show_quiz_taking():
                     if selected_answer is not None:
                         answer_index = question["options"].index(selected_answer)
                         # Fix: Get the correct answer index properly
-                        correct_answer_index = question.get("correct_answer", 0)
+                        correct_answer_index = int(question.get("correct_answer", 0))
                         
                         # Debug: Show what we're comparing
                         st.write(f"🔍 Debug: Selected index: {answer_index}, Correct index: {correct_answer_index}")
                         st.write(f"🔍 Debug: Selected text: '{selected_answer}'")
-                        st.write(f"🔍 Debug: Correct text: '{question['options'][correct_answer_index]}'")
+                        st.write(f"🔍 Debug: Correct text: '{question['options'][int(correct_answer_index)]}'")
                         
                         is_correct = answer_index == correct_answer_index
                         
@@ -1384,7 +1065,9 @@ def login_user(email: str, password: str) -> bool:
             st.session_state.access_token = data["access_token"]
             st.session_state.user_profile = data["user"]
             return True
-        return False
+        else:
+            st.error(f"Login failed: {response.status_code} - {response.text}")
+            return False
     except Exception as e:
         st.error(f"Login error: {str(e)}")
         return False
