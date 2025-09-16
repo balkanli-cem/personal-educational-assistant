@@ -51,10 +51,10 @@ async def get_explanation(
             LearningSession.session_type == "explanation"
         ).order_by(LearningSession.created_at.desc()).limit(5).all()
         
-        # Get user's quiz performance
-        recent_quizzes = db.query(QuizResponse).join(QuizQuestion).join(LearningSession).filter(
-            LearningSession.user_id == current_user.id
-        ).all()
+        # Get user's quiz performance (simplified)
+        recent_quizzes = db.query(QuizResponse).filter(
+            QuizResponse.user_id == current_user.id
+        ).limit(5).all()
         
         # Calculate performance level for better personalization
         if recent_quizzes:
