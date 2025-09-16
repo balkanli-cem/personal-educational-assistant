@@ -101,6 +101,137 @@ def main():
         color: white !important;
     }
 
+    /* Authentication Page Specific Styles */
+    .stAuthentication {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    /* Form Container */
+    .stAuthentication .stForm {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Form Title */
+    .stAuthentication h1, .stAuthentication h2, .stAuthentication h3 {
+        color: #2d3748 !important;
+        font-weight: 600;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    /* Input Labels */
+    .stAuthentication label {
+        color: #4a5568 !important;
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* Input Fields */
+    .stAuthentication input[type="text"], 
+    .stAuthentication input[type="email"], 
+    .stAuthentication input[type="password"] {
+        background: #ffffff !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        color: #2d3748 !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .stAuthentication input[type="text"]:focus, 
+    .stAuthentication input[type="email"]:focus, 
+    .stAuthentication input[type="password"]:focus {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* Password Visibility Toggle */
+    .stAuthentication button[title="Show password"] {
+        background: #f7fafc !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        color: #4a5568 !important;
+        padding: 8px !important;
+        margin-left: 8px !important;
+    }
+
+    .stAuthentication button[title="Show password"]:hover {
+        background: #edf2f7 !important;
+        border-color: #cbd5e0 !important;
+    }
+
+    /* Register Button */
+    .stAuthentication button[type="submit"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 14px 24px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+    }
+
+    .stAuthentication button[type="submit"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+    }
+
+    /* Error Messages */
+    .stAuthentication .stAlert {
+        background: #fed7d7 !important;
+        border: 1px solid #feb2b2 !important;
+        border-radius: 12px !important;
+        color: #c53030 !important;
+        padding: 12px 16px !important;
+        margin-top: 16px !important;
+        font-weight: 500 !important;
+    }
+
+    /* Success Messages */
+    .stAuthentication .stSuccess {
+        background: #c6f6d5 !important;
+        border: 1px solid #9ae6b4 !important;
+        border-radius: 12px !important;
+        color: #22543d !important;
+        padding: 12px 16px !important;
+        margin-top: 16px !important;
+        font-weight: 500 !important;
+    }
+
+    /* Tab Navigation */
+    .stAuthentication .stTabs [data-baseweb="tab"] {
+        background: #f7fafc !important;
+        color: #4a5568 !important;
+        border-radius: 8px !important;
+        margin-right: 8px !important;
+        padding: 8px 16px !important;
+        font-weight: 500 !important;
+    }
+
+    .stAuthentication .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+    }
+
     /* Card styling with glassmorphism effect */
     .quiz-card, .stats-card, .learning-card {
         background: rgba(255, 255, 255, 0.95);
