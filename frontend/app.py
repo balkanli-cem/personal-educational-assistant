@@ -6,7 +6,7 @@ import time
 from typing import Dict, List, Any
 
 # API Configuration
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = os.getenv("BACKEND_URL", "http://20.8.161.48:8000")
 
 # Set the backend URL
 BACKEND_URL = os.getenv("BACKEND_URL", "http://20.8.161.48:8000")
@@ -403,6 +403,27 @@ def main():
             margin: 0.5rem 0;
         }
     }
+    /* Force authorization text to be white */
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: white !important;
+    }
+
+    /* Specific styling for authorization section */
+    .stMarkdown p, .stMarkdown label, .stMarkdown div {
+        color: white !important;
+    }
+
+    /* Keep other text black as requested */
+    .stMarkdown:not(.authorization-section) p {
+        color: black !important;
+    }
+
+    /* Authorization section specific styling */
+    .authorization-section .stMarkdown p,
+    .authorization-section .stMarkdown label,
+    .authorization-section .stMarkdown div {
+        color: white !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -535,7 +556,7 @@ def show_landing_page():
         """, unsafe_allow_html=True)
     
     st.markdown("---")
-    st.markdown("### �� Get Started")
+    st.markdown("### 🔐Get Started")
     st.markdown("Create an account or login to access all features and start your personalized learning journey!")
 
 def show_learning_tab():
@@ -584,7 +605,7 @@ def show_learning_tab():
         """)
         
         if st.session_state.learning_sessions:
-            st.markdown("### �� Recent Sessions")
+            st.markdown("### 🕒 Recent Sessions")
             for i, session in enumerate(st.session_state.learning_sessions[-3:]):
                 with st.expander(f"Session {i+1}: {session['topic']}"):
                     st.markdown(f"**Question:** {session['question']}")
