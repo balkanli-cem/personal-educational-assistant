@@ -78,7 +78,8 @@ jobs:
         run: |
           az acr build --registry ${{ secrets.ACR_NAME }} \
             --image personalized-educational-frontend:${{ github.sha }} \
-            -f Dockerfile.frontend .
+            -f Dockerfile.frontend \
+            --no-cache .
 
       - name: Deploy Frontend
         run: |

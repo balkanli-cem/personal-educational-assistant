@@ -250,6 +250,11 @@ def main():
         .main-header h1 { font-size: 2rem; }
         .quiz-card, .stats-card, .learning-card { padding: 1.5rem; margin: 0.5rem 0; }
     }
+
+    /* Force sidebar background */
+    section[data-testid="stSidebar"] {
+        background-color: #CCCCFF !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -274,7 +279,7 @@ def main():
         return
     
     # Main tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📚 Learn", "🧠 Quiz", "🗺️ Learning Path", "�� Dashboard", "👤 Profile"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📚 Learn", "🧠 Quiz", "🗺️ Learning Path", "📊 Dashboard", "👤 Profile"])
     
     with tab1:
         show_learning_tab()
@@ -869,7 +874,7 @@ def show_learning_path_tab():
                     if learning_path and "modules" in learning_path:
                         st.session_state.current_learning_path = learning_path
                         st.success("Learning path generated successfully!")
-                        st.rerun()
+                        # st.rerun()
                     else:
                         st.error("Failed to generate learning path. Please try again.")
             else:
