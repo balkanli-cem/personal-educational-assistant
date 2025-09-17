@@ -1,4 +1,4 @@
-name: Enhanced CI/CD Pipeline
+name: Enhanced CI/CD Pipeline with Path Filters
 
 on:
   push:
@@ -12,184 +12,360 @@ env:
   AZURE_LOCATION: West Europe
 
 jobs:
-  test-backend:
+  backend-deploy:
+    if: github.event_name == 'push' && (contains(github.event.head_commit.modified, 'backend/') || contains(github.event.head_commit.added, 'backend/') || contains(github.event.head_commit.removed, 'backend/'))
     runs-on: ubuntu-latest
-    
+    name: Backend Deploy (only if backend/** changes)
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest
-    
-    - name: Test model imports
-      run: |
-        cd backend
-        python -c "from app.models import User, UserProfile, LearningSession, Quiz, QuizQuestion, QuizResponse, LearningProgress; print('✅ All models imported successfully')"
-    
-    - name: Test database creation
-      run: |
-        cd backend
-        python -c "from app.models.database import Base, engine; Base.metadata.create_all(bind=engine); print('✅ Database tables created successfully')"
+      - uses: actions/checkout@v4
 
-    - name: Test database connection
-      run: |
-        # Test the database connection
-        python -c "
-        import os
-        from sqlalchemy import create_engine, text
-        
-        DATABASE_URL = os.getenv('DATABASE_URL')
-        print(f'Database URL: {DATABASE_URL[:50]}...')
-        
-        try:
-            engine = create_engine(DATABASE_URL)
-            with engine.connect() as conn:
-                result = conn.execute(text('SELECT 1'))
-                print('✅ Database connection successful!')
-        except Exception as e:
-            print(f'❌ Database connection failed: {e}')
-            exit(1)
-        "
-      env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    
-    - name: Run model tests
-      run: |
-        cd backend
-        python test_models_simple.py
-    
-    - name: Run API tests
-      run: |
-        cd backend
-        python test_api_simple.py
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  test-frontend:
+      - name: ACR Login
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Build & Push Backend Image
+        run: |
+          az acr build --registry ${{ secrets.ACR_NAME }} \
+            --image personalized-educational-assistant:${{ github.sha }} \
+            -f Dockerfile .
+
+      - name: Deploy Backend
+        run: |
+          az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} --yes || true
+          ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
+          az container create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
+            --registry-username $ACR_USERNAME \
+            --registry-password $ACR_PASSWORD \
+            --os-type Linux \
+            --cpu 1 --memory 2 \
+            --ports 8000 \
+            --ip-address Public \
+            --dns-name-label personalized-education-${{ github.sha }} \
+            --environment-variables \
+              DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+              AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+              AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+              SECRET_KEY="${{ secrets.SECRET_KEY }}"
+
+  frontend-deploy:
+    if: github.event_name == 'push' && (contains(github.event.head_commit.modified, 'frontend/') || contains(github.event.head_commit.added, 'frontend/') || contains(github.event.head_commit.removed, 'frontend/'))
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Test frontend imports
-      run: |
-        cd frontend
-        python -c "import streamlit; print('✅ Streamlit import successful')"
+    name: Frontend Deploy (only if frontend/** changes)
 
-  build-and-deploy:
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Build & Push Frontend Image
+        run: |
+          az acr build --registry ${{ secrets.ACR_NAME }} \
+            --image personalized-educational-frontend:${{ github.sha }} \
+            -f Dockerfile.frontend .
+
+      - name: Deploy Frontend
+        run: |
+          az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name personalized-educational-frontend --yes || true
+          ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
+          DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
+          az container create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name personalized-educational-frontend \
+            --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-frontend:${{ github.sha }} \
+            --registry-username $ACR_USERNAME \
+            --registry-password $ACR_PASSWORD \
+            --os-type Linux \
+            --cpu 1 --memory 2 \
+            --ports 8501 \
+            --ip-address Public \
+            --dns-name-label $DNS_NAME \
+            --environment-variables \
+              BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+
+  full-deploy:
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Build Docker image
-      run: |
-        docker build -t personalized-educational-assistant:latest .
-        echo "✅ Docker image built successfully"
-    
-    - name: Test Docker image
-      run: |
-        docker run --rm -d --name test-app -p 8000:8000 personalized-educational-assistant:latest
-        sleep 10
-        curl -f http://localhost:8000/health || exit 1
-        docker stop test-app
-        echo "✅ Docker container test passed"
-    
-    - name: Login to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Login to Azure Container Registry
-      run: |
-        az acr login --name ${{ secrets.ACR_NAME }}
-    
-    - name: Delete existing containers
-      run: |
-        az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --yes || true
-        az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name personalized-educational-frontend --yes || true
-    
-    - name: Build and push to ACR
-      run: |
-        az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-assistant:${{ github.sha }} .
-    
-    - name: Deploy to Azure Container Instances
-      run: |
-        # Get ACR credentials
-        ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
-        ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
-        
-        az container create \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
-          --registry-username $ACR_USERNAME \
-          --registry-password $ACR_PASSWORD \
-          --os-type Linux \
-          --cpu 1 \
-          --memory 2 \
-          --ports 8000 \
-          --ip-address Public \
-          --dns-name-label personalized-education-${{ github.sha }} \
-          --environment-variables \
-            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-            AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
-            AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
-            SECRET_KEY="${{ secrets.SECRET_KEY }}"
+    if: github.event_name == 'push' && !(contains(github.event.head_commit.modified, 'backend/') || contains(github.event.head_commit.modified, 'frontend/'))
+    name: Full Deploy (fallback for infra/config changes)
 
-    - name: Build and push frontend to ACR
-      run: |
-        az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-frontend:${{ github.sha }} -f Dockerfile.frontend .
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Build & Push Backend Image
+        run: |
+          az acr build --registry ${{ secrets.ACR_NAME }} \
+            --image personalized-educational-assistant:${{ github.sha }} \
+            -f Dockerfile .
+
+      - name: Build & Push Frontend Image
+        run: |
+          az acr build --registry ${{ secrets.ACR_NAME }} \
+            --image personalized-educational-frontend:${{ github.sha }} \
+            -f Dockerfile.frontend .
+
+      - name: Deploy Backend
+        run: |
+          az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} --yes || true
+          ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
+          az container create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
+            --registry-username $ACR_USERNAME \
+            --registry-password $ACR_PASSWORD \
+            --os-type Linux \
+            --cpu 1 --memory 2 \
+            --ports 8000 \
+            --ip-address Public \
+            --dns-name-label personalized-education-${{ github.sha }} \
+            --environment-variables \
+              DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+              AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+              AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+              SECRET_KEY="${{ secrets.SECRET_KEY }}"
+
+      - name: Deploy Frontend
+        run: |
+          az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name personalized-educational-frontend --yes || true
+          ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
+          DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
+          az container create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name personalized-educational-frontend \
+            --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-frontend:${{ github.sha }} \
+            --registry-username $ACR_USERNAME \
+            --registry-password $ACR_PASSWORD \
+            --os-type Linux \
+            --cpu 1 --memory 2 \
+            --ports 8501 \
+            --ip-address Public \
+            --dns-name-label $DNS_NAME \
+            --environment-variables \
+              BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+
+# name: Enhanced CI/CD Pipeline
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+# env:
+#   AZURE_WEBAPP_NAME: personalized-educational-assistant
+#   AZURE_RESOURCE_GROUP: reimainge-dev-env-openAI
+#   AZURE_LOCATION: West Europe
+
+# jobs:
+#   test-backend:
+#     runs-on: ubuntu-latest
     
-    - name: Deploy frontend to Azure Container Instances
-      run: |
-        # Get ACR credentials
-        ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
-        ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
-        
-        # Create a shorter, valid DNS name
-        DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
-        
-        az container create \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --name personalized-educational-frontend \
-          --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-frontend:${{ github.sha }} \
-          --registry-username $ACR_USERNAME \
-          --registry-password $ACR_PASSWORD \
-          --os-type Linux \
-          --cpu 1 \
-          --memory 2 \
-          --ports 8501 \
-          --ip-address Public \
-          --dns-name-label $DNS_NAME \
-          --environment-variables \
-            BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+#     steps:
+#     - uses: actions/checkout@v4
     
-    - name: Get deployment URL
-      run: |
-        az container show --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --query "ipAddress.ip" --output tsv
-        echo "🚀 Deployment completed! Check the IP address above."
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.12'
+    
+#     - name: Install backend dependencies
+#       run: |
+#         cd backend
+#         python -m pip install --upgrade pip
+#         pip install -r requirements.txt
+#         pip install pytest
+    
+#     - name: Test model imports
+#       run: |
+#         cd backend
+#         python -c "from app.models import User, UserProfile, LearningSession, Quiz, QuizQuestion, QuizResponse, LearningProgress; print('✅ All models imported successfully')"
+    
+#     - name: Test database creation
+#       run: |
+#         cd backend
+#         python -c "from app.models.database import Base, engine; Base.metadata.create_all(bind=engine); print('✅ Database tables created successfully')"
+
+#     - name: Test database connection
+#       run: |
+#         # Test the database connection
+#         python -c "
+#         import os
+#         from sqlalchemy import create_engine, text
+        
+#         DATABASE_URL = os.getenv('DATABASE_URL')
+#         print(f'Database URL: {DATABASE_URL[:50]}...')
+        
+#         try:
+#             engine = create_engine(DATABASE_URL)
+#             with engine.connect() as conn:
+#                 result = conn.execute(text('SELECT 1'))
+#                 print('✅ Database connection successful!')
+#         except Exception as e:
+#             print(f'❌ Database connection failed: {e}')
+#             exit(1)
+#         "
+#       env:
+#         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    
+#     - name: Run model tests
+#       run: |
+#         cd backend
+#         python test_models_simple.py
+    
+#     - name: Run API tests
+#       run: |
+#         cd backend
+#         python test_api_simple.py
+
+#   test-frontend:
+#     runs-on: ubuntu-latest
+    
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.12'
+    
+#     - name: Install frontend dependencies
+#       run: |
+#         cd frontend
+#         python -m pip install --upgrade pip
+#         pip install -r requirements.txt
+    
+#     - name: Test frontend imports
+#       run: |
+#         cd frontend
+#         python -c "import streamlit; print('✅ Streamlit import successful')"
+
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     needs: [test-backend, test-frontend]
+#     if: github.ref == 'refs/heads/main'
+    
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Set up Docker Buildx
+#       uses: docker/setup-buildx-action@v3
+    
+#     - name: Build Docker image
+#       run: |
+#         docker build -t personalized-educational-assistant:latest .
+#         echo "✅ Docker image built successfully"
+    
+#     - name: Test Docker image
+#       run: |
+#         docker run --rm -d --name test-app -p 8000:8000 personalized-educational-assistant:latest
+#         sleep 10
+#         curl -f http://localhost:8000/health || exit 1
+#         docker stop test-app
+#         echo "✅ Docker container test passed"
+    
+#     - name: Login to Azure
+#       uses: azure/login@v1
+#       with:
+#         creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+#     - name: Login to Azure Container Registry
+#       run: |
+#         az acr login --name ${{ secrets.ACR_NAME }}
+    
+#     - name: Delete existing containers
+#       run: |
+#         az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --yes || true
+#         az container delete --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name personalized-educational-frontend --yes || true
+    
+#     - name: Build and push to ACR
+#       run: |
+#         az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-assistant:${{ github.sha }} .
+    
+#     - name: Deploy to Azure Container Instances
+#       run: |
+#         # Get ACR credentials
+#         ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
+#         ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
+        
+#         az container create \
+#           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+#           --name ${{ env.AZURE_WEBAPP_NAME }} \
+#           --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-assistant:${{ github.sha }} \
+#           --registry-username $ACR_USERNAME \
+#           --registry-password $ACR_PASSWORD \
+#           --os-type Linux \
+#           --cpu 1 \
+#           --memory 2 \
+#           --ports 8000 \
+#           --ip-address Public \
+#           --dns-name-label personalized-education-${{ github.sha }} \
+#           --environment-variables \
+#             DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+#             OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+#             AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+#             AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+#             SECRET_KEY="${{ secrets.SECRET_KEY }}"
+
+#     - name: Build and push frontend to ACR
+#       run: |
+#         az acr build --registry ${{ secrets.ACR_NAME }} --image personalized-educational-frontend:${{ github.sha }} -f Dockerfile.frontend .
+    
+#     - name: Deploy frontend to Azure Container Instances
+#       run: |
+#         # Get ACR credentials
+#         ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
+#         ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
+        
+#         # Create a shorter, valid DNS name
+#         DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
+        
+#         az container create \
+#           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+#           --name personalized-educational-frontend \
+#           --image ${{ secrets.ACR_NAME }}.azurecr.io/personalized-educational-frontend:${{ github.sha }} \
+#           --registry-username $ACR_USERNAME \
+#           --registry-password $ACR_PASSWORD \
+#           --os-type Linux \
+#           --cpu 1 \
+#           --memory 2 \
+#           --ports 8501 \
+#           --ip-address Public \
+#           --dns-name-label $DNS_NAME \
+#           --environment-variables \
+#             BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+    
+#     - name: Get deployment URL
+#       run: |
+#         az container show --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_WEBAPP_NAME }} --query "ipAddress.ip" --output tsv
+#         echo "🚀 Deployment completed! Check the IP address above."

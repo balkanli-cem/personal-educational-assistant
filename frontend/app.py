@@ -876,7 +876,7 @@ def show_learning_path_tab():
                 st.warning("Please enter a learning path topic.")
     
     with col2:
-        st.markdown("### �� Learning Tips")
+        st.markdown("### 📚 Learning Tips")
         st.markdown("""
         - Set clear, achievable goals
         - Be honest about your current level
@@ -1035,7 +1035,7 @@ def show_profile_tab():
 
 def display_learning_path(learning_path: Dict):
     """Display learning path with enhanced styling"""
-    st.markdown("### ��️ Your Learning Path")
+    st.markdown("### 🗺️ Your Learning Path")
     
     col1, col2 = st.columns([1, 1])
     
@@ -1186,6 +1186,11 @@ def generate_quiz(topic: str, difficulty: str, num_questions: int) -> Dict:
 def generate_learning_path(topic: str, current_level: str, goals: List[str]) -> Dict:
     """Generate learning path"""
     try:
+        # Input validation
+        if not topic.strip():
+            st.error("Please enter a learning path topic.")
+            return None
+        
         headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
         response = requests.post(f"{API_BASE_URL}/api/ai/learning-path",
                                json={"topic": topic, "current_level": current_level, "learning_goals": goals},
@@ -1193,9 +1198,21 @@ def generate_learning_path(topic: str, current_level: str, goals: List[str]) -> 
         
         if response.status_code == 200:
             return response.json()
+        elif response.status_code == 400:
+            error_data = response.json()
+            st.error(f"Validation error: {error_data.get('detail', 'Invalid input')}")
+            return None
+        elif response.status_code == 401:
+            st.error("Authentication failed. Please login again.")
+            return None
+        else:
+            st.error(f"Server error: {response.status_code}")
+            return None
+    except requests.exceptions.ConnectionError:
+        st.error("Cannot connect to server. Please check if the backend is running.")
         return None
     except Exception as e:
-        st.error(f"Error: {str(e)}")
+        st.error(f"Unexpected error: {str(e)}")
         return None
 
 def show_loading_animation(message: str):
