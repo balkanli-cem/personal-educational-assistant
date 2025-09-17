@@ -62,7 +62,7 @@ async def get_explanation(
             total_answers = len(recent_quizzes)
             performance_level = "advanced" if (correct_answers / total_answers) > 0.8 else "intermediate" if (correct_answers / total_answers) > 0.6 else "beginner"
         else:
-            performance_level = profile.difficulty_level or "beginner"
+            performance_level = profile.difficulty_preference or "beginner"
         
         # Generate explanation with enhanced personalization
         explanation = await llm_service.generate_explanation(

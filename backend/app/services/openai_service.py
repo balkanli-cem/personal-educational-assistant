@@ -304,7 +304,10 @@ IMPORTANT: Respond with ONLY valid JSON. No additional text or explanations.
                 "raw_response": content if 'content' in locals() else "No response received"
             }
         except Exception as e:
-            return {"error": f"Error generating learning path: {str(e)}"}
+            import traceback
+            print("ERROR in generate_explanation:", str(e))
+            traceback.print_exc()
+            raise
 
 # Global instance
 openai_service = OpenAIService()

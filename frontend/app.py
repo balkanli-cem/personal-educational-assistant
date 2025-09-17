@@ -30,7 +30,43 @@ def main():
 
     /* Sidebar background */
     .stSidebar {
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        background: #CCCCFF !important;
+        backdrop-filter: none !important;
+        border-right: 0.5px solid rgba(0,0,0,0.1) !important;
+    }
+
+    /* Sidebar text */
+    .stSidebar * {
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+
+    /* Sidebar input fields */
+    .stSidebar input[type="text"],
+    .stSidebar input[type="email"], 
+    .stSidebar input[type="password"] {
+        background: #f8f9fa !important;
+        color: #000000 !important;
+        border: 1px solid #ccc !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    /* Sidebar buttons */
+    .stSidebar .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .stSidebar .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3) !important;
     }
 
     /* Main content text */
@@ -40,16 +76,6 @@ def main():
     .main .stMarkdown h3, .main .stMarkdown h4, .main .stMarkdown h5, .main .stMarkdown h6 {
         color: #000000 !important;
         line-height: 1.6 !important;
-    }
-
-    /* Sidebar text (default = white, inputs stay black) */
-    .stSidebar * {
-        color: white !important;
-    }
-    .stSidebar input[type="text"],
-    .stSidebar input[type="email"], 
-    .stSidebar input[type="password"] {
-        color: #000000 !important;
     }
 
     /* Metrics */
@@ -92,23 +118,12 @@ def main():
         outline: none !important;
     }
 
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 0.75rem 2rem !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-    }
-    .stButton > button:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+    /* Fix input and textarea labels */
+    .stTextInput label, 
+    .stTextArea label, 
+    .stSelectbox label {
+        color: #000000 !important;
+        font-weight: 500 !important;
     }
 
     /* Headers (hero style) */
