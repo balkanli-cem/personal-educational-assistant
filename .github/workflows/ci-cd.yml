@@ -50,7 +50,7 @@ jobs:
             --cpu 1 --memory 2 \
             --ports 8000 \
             --ip-address Public \
-            --dns-name-label personalized-education-${{ github.sha }} \
+            --dns-name-label personalized-education \
             --environment-variables \
               DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
@@ -87,7 +87,6 @@ jobs:
             --name personalized-educational-frontend --yes || true
           ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
           ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
-          DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
           az container create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name personalized-educational-frontend \
@@ -98,9 +97,9 @@ jobs:
             --cpu 1 --memory 2 \
             --ports 8501 \
             --ip-address Public \
-            --dns-name-label $DNS_NAME \
+            --dns-name-label pe-frontend \
             --environment-variables \
-              BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+              BACKEND_URL="http://personalized-education.westeurope.azurecontainer.io:8000"
 
   full-deploy:
     runs-on: ubuntu-latest
@@ -146,7 +145,7 @@ jobs:
             --cpu 1 --memory 2 \
             --ports 8000 \
             --ip-address Public \
-            --dns-name-label personalized-education-${{ github.sha }} \
+            --dns-name-label personalized-education \
             --environment-variables \
               DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
@@ -160,7 +159,6 @@ jobs:
             --name personalized-educational-frontend --yes || true
           ACR_USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username -o tsv)
           ACR_PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value -o tsv)
-          DNS_NAME="pe-frontend-$(echo ${{ github.sha }} | cut -c1-8)"
           az container create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name personalized-educational-frontend \
@@ -171,9 +169,9 @@ jobs:
             --cpu 1 --memory 2 \
             --ports 8501 \
             --ip-address Public \
-            --dns-name-label $DNS_NAME \
+            --dns-name-label pe-frontend \
             --environment-variables \
-              BACKEND_URL="http://personalized-education-${{ github.sha }}.westeurope.azurecontainer.io:8000"
+              BACKEND_URL="http://personalized-education.westeurope.azurecontainer.io:8000"
 
 # name: Enhanced CI/CD Pipeline
 

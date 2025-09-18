@@ -6,8 +6,9 @@ An AI-powered educational assistant that delivers personalized explanations, int
 
 Note: First load may take ~30 seconds as the container initializes.
 
-- **Frontend (Streamlit)**: [http://pe-frontend-d89a88d9.westeurope.azurecontainer.io:8501](http://pe-frontend-d89a88d9.westeurope.azurecontainer.io:8501)
-- **API Documentation**: [http://personalized-education-d89a88d9.westeurope.azurecontainer.io:8000/docs](http://personalized-education-d89a88d9.westeurope.azurecontainer.io:8000/docs)
+- **Frontend (Streamlit)**: [http://pe-frontend.westeurope.azurecontainer.io:8501](http://pe-frontend.westeurope.azurecontainer.io:8501)
+- **Backend API (FastAPI)**: [http://personalized-education.westeurope.azurecontainer.io:8000](http://personalized-education.westeurope.azurecontainer.io:8000)
+- **API Documentation**: [http://personalized-education.westeurope.azurecontainer.io:8000/docs](http://personalized-education.westeurope.azurecontainer.io:8000/docs)
 
 ## Key Features
 
@@ -212,7 +213,7 @@ personalized-educational-assistant/
    az group create --name YOUR-RESOURCE-GROUP --location "West Europe"
    
    # Create PostgreSQL database
-   az postgres flexible-server create --resource-group YOUR-RESOURCE-GROUP --name personalized-education-db --admin-user AISA2025 --admin-password "YourPassword123!" --sku-name Standard_B1ms --tier Burstable --public-access 0.0.0.0
+   az postgres flexible-server create --resource-group YOUR-RESOURCE-GROUP --name personalized-education-db --admin-user YOUR-ADMIN --admin-password "YourPassword123!" --sku-name Standard_B1ms --tier Burstable --public-access 0.0.0.0
    ```
 
 2. **Configure GitHub Secrets**
@@ -309,7 +310,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Cem Balkanli**
 - GitHub: [@balkanli-cem](https://github.com/balkanli-cem)
-- LinkedIn: [Cem BALKANLI](www.linkedin.com/in/cem-balkanli)
+- LinkedIn: [Cem BALKANLI](https://linkedin.com/in/cem-balkanli)
 
 ## Acknowledgments
 
@@ -323,8 +324,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Lines of Code**: 2,500+
 - **API Endpoints**: 8
-- **Database Tables**: 6
-- **Test Coverage**: 85%+
+- **Test Coverage**: 90%+
 - **Deployment Time**: < 5 minutes
 - **Uptime**: 99.9%
 
